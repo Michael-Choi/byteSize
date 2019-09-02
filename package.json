@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Michael-Choi/tinyapp/issues"
   },
-  "homepage": "https://github.com/Michael-Choi/tinyapp#readme"
+  "homepage": "https://github.com/Michael-Choi/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }

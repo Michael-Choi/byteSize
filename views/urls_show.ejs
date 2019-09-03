@@ -23,6 +23,13 @@
           Short URL:
           <a href="https://<%= longURL %>"><%= shortURL %></a>
         </p>
+
+        <form method="POST" action="/urls/<%=shortURL %>/edit">
+          <input type="text" name="longURL" />
+          <button type="submit" class="btn btn-outline-warning">
+            Edit
+          </button>
+        </form>
       </div>
       <div class="card-footer text-muted"></div>
     </div>

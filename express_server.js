@@ -10,10 +10,11 @@ app.use(cookieParser());
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+//urlDatabase={shortURL:{longURL:'asdf.ca', userID:"asdfasdf"}}
+
+// b2xVn2: "http://www.lighthouselabs.ca",
+// "9sm5xK": "http://www.google.com"
+const urlDatabase = {};
 
 const users = {
   user1: {
@@ -88,6 +89,10 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies.email) {
+    console.log("no email cookie");
+    return res.redirect("/login");
+  }
   let templateVars = {
     username: req.cookies.email
   };
@@ -97,7 +102,10 @@ app.get("/urls/new", (req, res) => {
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   let temp = generateRandomString();
-  urlDatabase[temp] = req.body.longURL;
+  urlDatabase[temp] = {
+    longURL: req.body.longURL,
+    userID: req.cookies.user_id
+  };
   console.log(urlDatabase);
   res.redirect(`/urls/${temp}`);
 });
@@ -134,9 +142,16 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, username: req.cookies.email };
+  let templateVars = {
+    urls: urlsForUser(req.cookies.user_id),
+    username: req.cookies.email
+  };
   console.log(users);
-  res.render("urls_index", templateVars);
+  if (!req.cookies.email) {
+    return res.redirect("/login");
+  } else {
+    res.render("urls_index", templateVars);
+  }
 });
 
 app.get("/", (req, res) => {
@@ -156,3 +171,13 @@ function generateRandomString() {
   }
   return result;
 }
+
+let urlsForUser = ID => {
+  let userUrls = {};
+  for (short in urlDatabase) {
+    if (urlDatabase[short].userID === ID) {
+      userUrls[short] = urlDatabase[short].longURL;
+    }
+  }
+  return userUrls;
+};

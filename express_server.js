@@ -1,11 +1,12 @@
+//setting up setup variables
 const express = require("express");
 const app = express();
-app.set("view engine", "ejs");
 const PORT = 8080; // default port 8080
+app.set("view engine", "ejs");
 
-var cookieParser = require("cookie-parser");
+//Middleware to parse cookies and body
+const cookieParser = require("cookie-parser");
 app.use(cookieParser());
-
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -28,13 +29,9 @@ const users = {
   }
 };
 
-app.get("/", (req, res) => {
-  res.redirect("/urls");
-});
-
 app.post("/login", (req, res) => {
-  console.log(req.cookies);
   res.cookie("username", req.body.username);
+
   res.redirect("/urls");
 });
 
@@ -46,11 +43,16 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  res.cookie("username", req.body.username);
-});
+  console.log(req.body);
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  let temp = generateRandomString();
+  users[temp] = {
+    id: temp,
+    email: req.body.email,
+    password: req.body.password
+  };
+  res.cookie("user_id", temp);
+  res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -83,11 +85,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls/");
 });
 
-app.post("/logout", (req, res) => {
-  res.clearCookie("username");
-  res.redirect("/urls/");
-});
-
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -103,9 +100,23 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls/");
+});
+
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  console.log(users);
   res.render("urls_index", templateVars);
+});
+
+app.get("/", (req, res) => {
+  res.redirect("/urls");
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
 
 function generateRandomString() {

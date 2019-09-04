@@ -14,14 +14,39 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  user1: {
+    id: "user1",
+    email: "user1@gmail.com",
+    password: "abcd1234"
+  },
+
+  user2: {
+    id: "user2",
+    email: "user2@gmail.com",
+    password: "password"
+  }
+};
+
 app.get("/", (req, res) => {
-  res.send("Hello world!");
+  res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
   console.log(req.cookies);
+  res.cookie("username", req.body.username);
   res.redirect("/urls");
+});
+
+app.get("/register", (req, res) => {
+  let templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("register", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  res.cookie("username", req.body.username);
 });
 
 app.listen(PORT, () => {
@@ -69,7 +94,6 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL],
     username: req.cookies["username"]
   };
-
   res.render("urls_show", templateVars);
 });
 

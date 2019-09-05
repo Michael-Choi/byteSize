@@ -23,9 +23,9 @@
 
     <main style="margin: 1em;">
       <h3>Register</h3>
-      <form class="form-inline" action="/register" method="POST">
+      <form class="form-inline-block" action="/register" method="POST">
         <div class="form-group mb-2">
-          <label for="email">Enter email:</label>
+          <label for="email">Email:</label>
           <input
             class="form-control"
             type="email"
@@ -33,7 +33,7 @@
             style="width: 300px; margin: 1em"
           />
 
-          <label for="password">Create password:</label>
+          <label for="password">Password:</label>
           <input
             class="form-control"
             type="password"
@@ -43,6 +43,15 @@
           <button type="submit" class="btn btn-primary">Sign up</button>
         </div>
       </form>
+      <% if (emailExists==='true'){ %>
+      <div class="alert alert-primary" role="alert">
+        Email already exists in the database
+      </div>
+      <% } %> <% if (emailExists==='blank'){ %>
+      <div class="alert alert-primary" role="alert">
+        Enter your email and password to register
+      </div>
+      <% } %>
     </main>
 
     <!-- Bootstrap JS -->

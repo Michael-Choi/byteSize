@@ -51,17 +51,14 @@ app.post("/login", (req, res) => {
         req.session.user_id = users[user].id;
         req.session.email = users[user].email;
         return res.redirect("/urls");
-      } else {
-        req.session.wrongLogin = true;
       }
     }
   }
+  req.session.wrongLogin = true;
   res.redirect("/login");
 });
 
 app.get("/login", (req, res) => {
-  console.log("the cookies inside /login");
-  console.log(req.session);
   let templateVars = {
     username: req.session.email || "",
     wrongPassword: req.session.wrongLogin
@@ -71,25 +68,22 @@ app.get("/login", (req, res) => {
 
 app.get("/register", (req, res) => {
   let templateVars = {
-    username: req.session.email
+    username: req.session.email,
+    emailExists: req.session.emailExists
   };
   res.render("register", templateVars);
 });
 
 app.post("/register", (req, res) => {
-  //TODO add email/password empty routing
-  //TODO add email exists routing
-  console.log(users);
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   if (req.body.email === "" || req.body.password === "") {
-    return res.status(400).send("email address or password empty");
+    req.session.emailExists = "blank";
+    return res.redirect("/register");
   }
-  console.log(req.body);
+
   if (getUserByEmail(req.body.email, users)) {
-    console.log(getUserByEmail(req.body.email, users));
-    console.log("already exists");
-    console.log(users);
-    return res.status(400).send("email already exists in database");
+    req.session.emailExists = "true";
+    return res.redirect("/register");
   }
 
   let temp = generateRandomString();
@@ -105,13 +99,8 @@ app.post("/register", (req, res) => {
   res.end();
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
 app.get("/urls/new", (req, res) => {
   if (!req.session.email) {
-    console.log("no email cookie");
     return res.redirect("/login");
   }
   let templateVars = {
@@ -121,13 +110,12 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
   let temp = generateRandomString();
   urlDatabase[temp] = {
     longURL: req.body.longURL,
     userID: req.session.user_id
   };
-  console.log(urlDatabase);
+
   res.redirect(`/urls/${temp}`);
 });
 
@@ -137,13 +125,14 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
+  if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+  }
   res.redirect("/urls/");
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
-    console.log(req.body);
     urlDatabase[req.params.shortURL] = {
       longURL: req.body.longURL,
       userID: req.session.user_id
@@ -165,7 +154,6 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/logout", (req, res) => {
   req.session = null;
-
   res.redirect("/urls/");
 });
 
@@ -174,8 +162,6 @@ app.get("/urls", (req, res) => {
     urls: urlsForUser(req.session.user_id, urlDatabase),
     username: req.session.email
   };
-  console.log("cookies inside /urls are:");
-  console.log(req.session);
   if (!req.session.email) {
     return res.redirect("/login");
   } else {

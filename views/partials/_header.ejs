@@ -20,15 +20,17 @@
     </div>
 
     <div style="padding:0 10px 0 0" class="h2"><%=username%></div>
-    <a href="/register">Register button</a>
+    <a class="btn btn-primary" href="/register">Register</a>
 
     <% if (!username){ %>
 
-    <a href="/login">Log in</a>
+    <a class="btn btn-primary" style="margin:5px;" href="/login">Log in</a>
 
     <% }else{ %>
     <form action="/logout" method="POST">
-      <button type="submit">log out</button>
+      <button class="btn btn-primary" style="margin:5px;" type="submit">
+        Log out
+      </button>
     </form>
     <% } %>
   </nav>

@@ -4,9 +4,17 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["Sign in page"](https://github.com/Michael-Choi/tinyapp/blob/master/docs/login-page.png)
-!["Create shortened URLs"](https://github.com/Michael-Choi/tinyapp/blob/master/docs/create-url.png)
-!["Manage your URLs"](https://github.com/Michael-Choi/tinyapp/blob/master/docs/shortened-urls.png)
+1. Sign in
+
+   !["Sign in page"](https://github.com/Michael-Choi/tinyapp/blob/master/docs/login-page.png)
+
+2. Create shortened URLs
+
+   !["Create shortened URLs"](https://github.com/Michael-Choi/tinyapp/blob/master/docs/create-url.png)
+
+3. Manage your URLs
+
+   !["Manage your URLs"](https://github.com/Michael-Choi/tinyapp/blob/master/docs/shortened-urls.png)
 
 ## Dependencies
 

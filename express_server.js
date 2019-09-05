@@ -25,7 +25,11 @@ app.use(
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
+
 const bcrypt = require("bcrypt");
+
+const methodOverride = require("method-override");
+app.use(methodOverride("_method"));
 
 /** --URL Database format--
 urlDatabase={
@@ -118,7 +122,11 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL].longURL;
+  console.log(longURL);
+  if (longURL.slice(0, 4) !== "http") {
+    longURL = "https://" + longURL;
+  }
   res.redirect(longURL);
 });
 
@@ -132,14 +140,14 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.delete("/urls/:shortURL/", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
   }
   res.redirect("/urls/");
 });
 
-app.post("/urls/:shortURL/edit", (req, res) => {
+app.put("/urls/:shortURL/", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL] = {
       longURL: req.body.longURL,

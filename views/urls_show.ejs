@@ -24,7 +24,7 @@
           <a href="https://<%= longURL %>"><%= shortURL %></a>
         </p>
 
-        <form method="POST" action="/urls/<%=shortURL %>/edit">
+        <form method="POST" action="/urls/<%=shortURL %>/?_method=PUT">
           <input type="text" name="longURL" />
           <button type="submit" class="btn btn-outline-warning">
             Edit

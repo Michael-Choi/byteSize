@@ -1,4 +1,4 @@
-let {
+const {
   generateRandomString,
   urlsForUser,
   getUserByEmail
@@ -11,21 +11,20 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 //Middleware to parse cookies and body
-
+//! The program deletes session cookies on redirects without cookieParser
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 const cookieSession = require("cookie-session");
 app.use(
   cookieSession({
-    name: "asdf",
+    name: "userId",
     keys: ["id"]
   })
 );
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
-
 const bcrypt = require("bcrypt");
 
 /** URL Database format
@@ -37,14 +36,7 @@ urlDatabase={
 } */
 
 const urlDatabase = {};
-
 const users = {
-  // user1: {
-  //   id: "user1",
-  //   email: "user1@gmail.com",
-  //   password: "abcd1234"
-  // },
-
   user2: {
     id: "user2",
     email: "user2@gmail.com",
@@ -53,18 +45,14 @@ const users = {
 };
 
 app.post("/login", (req, res) => {
-  console.log("body inside /login");
-  console.log(req.body);
-
   for (user in users) {
     if (req.body.email === users[user].email) {
-      console.log("email found");
       if (bcrypt.compareSync(req.body.password, users[user].password)) {
         req.session.user_id = users[user].id;
         req.session.email = users[user].email;
-        console.log(req.session.email);
-        console.log("username and password matched");
         return res.redirect("/urls");
+      } else {
+        req.session.wrongLogin = true;
       }
     }
   }
@@ -75,7 +63,8 @@ app.get("/login", (req, res) => {
   console.log("the cookies inside /login");
   console.log(req.session);
   let templateVars = {
-    username: req.session.email || ""
+    username: req.session.email || "",
+    wrongPassword: req.session.wrongLogin
   };
   res.render("login", templateVars);
 });
@@ -110,12 +99,8 @@ app.post("/register", (req, res) => {
     password: hashedPassword
   };
 
-  console.log(users[temp].email);
   req.session.user_id = temp;
   req.session.email = users[temp].email;
-  console.log(`the cookies inside /register is:`);
-  console.log(req.session);
-
   res.redirect("/urls");
   res.end();
 });
@@ -157,15 +142,22 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
-  console.log(req.body);
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  res.redirect(`/urls/${req.params.shortURL}`);
+  if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
+    console.log(req.body);
+    urlDatabase[req.params.shortURL] = {
+      longURL: req.body.longURL,
+      userID: req.session.user_id
+    };
+    res.redirect(`/urls/${req.params.shortURL}`);
+  } else {
+    res.send("not authorized");
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     username: req.session.email
   };
   res.render("urls_show", templateVars);

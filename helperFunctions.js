@@ -25,6 +25,6 @@ let getUserByEmail = (target, database) => {
       return user;
     }
   }
-  return null;
+  return undefined;
 };
 module.exports = { generateRandomString, urlsForUser, getUserByEmail };

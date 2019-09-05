@@ -27,22 +27,25 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 const bcrypt = require("bcrypt");
 
-/** URL Database format
+/** --URL Database format--
 urlDatabase={
   shortURL:{
     longURL:'asdf.ca', 
-    userID:"asdfasdf"
+    userID:"qwer"
   }
-} */
+}
 
-const urlDatabase = {};
-const users = {
+--Users database format--
+users={
   user2: {
     id: "user2",
     email: "user2@gmail.com",
     password: "password"
   }
-};
+}
+*/
+const urlDatabase = {};
+const users = {};
 
 app.post("/login", (req, res) => {
   for (user in users) {
@@ -59,6 +62,9 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+  if (req.session.email) {
+    return res.redirect("/urls");
+  }
   let templateVars = {
     username: req.session.email || "",
     wrongPassword: req.session.wrongLogin
@@ -67,6 +73,9 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  if (req.session.email) {
+    return res.redirect("/urls");
+  }
   let templateVars = {
     username: req.session.email,
     emailExists: req.session.emailExists
@@ -75,7 +84,10 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  //Hashes password
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+
+  //if either parameter is empty, set cookie to equal blank so that .ejs file will present the text
   if (req.body.email === "" || req.body.password === "") {
     req.session.emailExists = "blank";
     return res.redirect("/register");
@@ -86,6 +98,7 @@ app.post("/register", (req, res) => {
     return res.redirect("/register");
   }
 
+  //random string for user id
   let temp = generateRandomString();
   users[temp] = {
     id: temp,
@@ -99,6 +112,16 @@ app.post("/register", (req, res) => {
   res.end();
 });
 
+app.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect("/urls/");
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
 app.get("/urls/new", (req, res) => {
   if (!req.session.email) {
     return res.redirect("/login");
@@ -107,21 +130,6 @@ app.get("/urls/new", (req, res) => {
     username: req.session.email
   };
   res.render("urls_new", templateVars);
-});
-
-app.post("/urls", (req, res) => {
-  let temp = generateRandomString();
-  urlDatabase[temp] = {
-    longURL: req.body.longURL,
-    userID: req.session.user_id
-  };
-
-  res.redirect(`/urls/${temp}`);
-});
-
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -152,11 +160,6 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("/logout", (req, res) => {
-  req.session = null;
-  res.redirect("/urls/");
-});
-
 app.get("/urls", (req, res) => {
   let templateVars = {
     urls: urlsForUser(req.session.user_id, urlDatabase),
@@ -167,6 +170,16 @@ app.get("/urls", (req, res) => {
   } else {
     res.render("urls_index", templateVars);
   }
+});
+
+app.post("/urls", (req, res) => {
+  let temp = generateRandomString();
+  urlDatabase[temp] = {
+    longURL: req.body.longURL,
+    userID: req.session.user_id
+  };
+
+  res.redirect(`/urls/${temp}`);
 });
 
 app.get("/", (req, res) => {

@@ -1,3 +1,4 @@
+//importing helper functions
 const {
   generateRandomString,
   urlsForUser,
@@ -5,37 +6,41 @@ const {
 } = require("./helperFunctions");
 
 //setting up setup variables
-const express = require("express");
-const app = express();
-const PORT = 8080; // default port 8080
-app.set("view engine", "ejs");
-
 const mongo = require("mongodb");
+const mongoose = require("mongoose");
 const assert = require("assert");
+const express = require("express");
+const bcrypt = require("bcrypt");
+const methodOverride = require("method-override");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 
-const db = require("./db");
-const collection = "users";
+const db = require("./config/keys").mongoURI;
+
+const app = express();
+
+app.set("view engine", "ejs");
 
 //Middleware to parse cookies and body
 //! The program deletes session cookies on redirects without cookieParser
-const cookieParser = require("cookie-parser");
 app.use(cookieParser());
-
-const cookieSession = require("cookie-session");
 app.use(
   cookieSession({
     name: "userId",
     keys: ["id"]
   })
 );
-
-const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
-
-const bcrypt = require("bcrypt");
-
-const methodOverride = require("method-override");
 app.use(methodOverride("_method"));
+
+//connect to mongo
+mongoose
+  .connect(db)
+  .then(() => console.log("mongoDB connects"))
+  .catch(err => console.log(err));
+
+const PORT = process.env.PORT || 8080; // default port 8080
 
 /** --URL Database format--
 urlDatabase={
@@ -115,15 +120,6 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: hashedPassword
   };
-
-  mongo.connect(url, (err, db) => {
-    assert.equal(null, err);
-    db.collection("user-registration").insertOne(item, (err, result) => {
-      assert.equal(null, error);
-      console.log("Item inserted");
-      db.close();
-    });
-  });
 
   req.session.user_id = temp.id;
   req.session.email = temp.email;

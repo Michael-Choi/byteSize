@@ -10,6 +10,12 @@ const app = express();
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
+const mongo = require("mongodb");
+const assert = require("assert");
+
+const db = require("./db");
+const collection = "users";
+
 //Middleware to parse cookies and body
 //! The program deletes session cookies on redirects without cookieParser
 const cookieParser = require("cookie-parser");
@@ -49,7 +55,6 @@ users={
 }
 */
 const urlDatabase = {};
-const users = {};
 
 app.post("/login", (req, res) => {
   for (user in users) {
@@ -104,16 +109,25 @@ app.post("/register", (req, res) => {
 
   //random string for user id
   let temp = generateRandomString();
-  users[temp] = {
-    id: temp,
+  const id = temp;
+  temp = {
+    id,
     email: req.body.email,
     password: hashedPassword
   };
 
-  req.session.user_id = temp;
-  req.session.email = users[temp].email;
+  mongo.connect(url, (err, db) => {
+    assert.equal(null, err);
+    db.collection("user-registration").insertOne(item, (err, result) => {
+      assert.equal(null, error);
+      console.log("Item inserted");
+      db.close();
+    });
+  });
+
+  req.session.user_id = temp.id;
+  req.session.email = temp.email;
   res.redirect("/urls");
-  res.end();
 });
 
 app.post("/logout", (req, res) => {

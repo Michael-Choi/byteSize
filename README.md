@@ -38,3 +38,9 @@ npm start
 3. Manage your URLs
 
    !["Manage your URLs"](https://github.com/Michael-Choi/tinyapp/blob/master/docs/shortened-urls.png)
+   
+   
+ ## Future tasks:
+ - Utilize mongoDB to store user logins and websites. 
+ - Polish css
+ - Create custom urls

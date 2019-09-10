@@ -2,20 +2,23 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 const { generateRandomString } = require("../../helperFunctions");
 
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
+
+router.use(cookieParser());
+router.use(
+  cookieSession({
+    name: "userId",
+    keys: ["id"]
+  })
+);
+router.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
+
 //database models
 const User = require("../../models/User");
 const URLdatabase = require("../../models/UrlDatabase");
-
-//@Route        get request
-//@description  get all users
-//@access       public for now
-// router.get("/", (req, res) => {
-//   User.find().then(users => res.json(users));
-// });
-
-// router.post("/", (req, res) => {
-//   User.find().then(users => res.json(users));
-// });
 
 router.get("/new", (req, res) => {
   if (!req.session.email) {
@@ -28,56 +31,71 @@ router.get("/new", (req, res) => {
 });
 
 router.delete("/:shortURL/", (req, res) => {
-  if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
-    delete urlDatabase[req.params.shortURL];
-  }
-  res.redirect("/urls/");
+  URLdatabase.findOne({ shortURL: req.params.shortURL }).then(link =>
+    link
+      .remove()
+      .then(res.redirect("/urls/"))
+      .catch(err => res.json(err))
+  );
 });
 
 router.put("/:shortURL/", (req, res) => {
-  if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
-    urlDatabase[req.params.shortURL] = {
-      longURL: req.body.longURL,
-      userID: req.session.user_id
-    };
-    res.redirect(`/urls/${req.params.shortURL}`);
-  } else {
-    res.send("not authorized");
-  }
+  URLdatabase.findOneAndUpdate(
+    { shortURL: req.params.shortURL },
+    { longURL: req.body.longURL }
+  ).then(res.redirect(`/urls/${req.params.shortURL}`));
 });
 
 router.get("/:shortURL", (req, res) => {
-  let templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    username: req.session.email
-  };
-  res.render("urls_show", templateVars);
+  let searchURL = req.params.shortURL;
+  URLdatabase.findOne({ shortURL: searchURL })
+    .then(foundURL => {
+      console.log("found url", foundURL);
+      let templateVars = {
+        shortURL: req.params.shortURL,
+        longURL: foundURL.longURL,
+        username: req.session.email
+      };
+      res.render("urls_show", templateVars);
+    })
+    .catch(err => res.json(err));
 });
 
 router.get("/", (req, res) => {
-  let templateVars = {
-    //urlsforuser is urldatabase.filter something for only user's id
-    urls: urlsForUser(req.session.user_id, urlDatabase),
-    username: req.session.email
-  };
+  let searchID = req.session.user_id;
+  console.log("session uid", req.session.user_id);
+  URLdatabase.find({ userID: searchID })
+    .then(url => {
+      //pass in key:value pair object of short:long to result then pass that object into template
+      let result = {};
+      for (key in url) {
+        result[url[key].shortURL] = url[key].longURL;
+      }
+      let templateVars = {
+        urls: result,
+        username: req.session.email
+      };
+      res.render("urls_index", templateVars);
+    })
+    .catch(err => res.json(err));
+
   if (!req.session.email) {
+    console.log("being redirected to login");
     return res.redirect("/login");
-  } else {
-    res.render("urls_index", templateVars);
   }
 });
 
 router.post("/", (req, res) => {
   let randomString = generateRandomString();
+  req.session.longURL = req.body.longURL;
   const urlSet = new URLdatabase({
     shortURL: randomString,
     longURL: req.body.longURL,
-    userID: req.body.user_id
+    userID: req.session.user_id
   });
   urlSet
     .save()
-    .then(item => res.json(item))
+    .then(res.redirect(`/urls/${randomString}`))
     .catch(err => res.status(404).json({ error: err }));
   //res.redirect(`/urls/${randomString}`);
 });

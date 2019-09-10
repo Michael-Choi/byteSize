@@ -1,21 +1,45 @@
 const express = require("express");
 const router = express.Router();
-
+const bcrypt = require("bcrypt");
+const { generateRandomString } = require("../../helperFunctions");
 const User = require("../../models/User");
-const UrlDatabase = require("../../models/UrlDatabase");
+const URLdatabase = require("../../models/UrlDatabase");
+
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
+
+router.use(cookieParser());
+router.use(
+  cookieSession({
+    name: "userId",
+    keys: ["id"]
+  })
+);
+
+router.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
 
 router.post("/login", (req, res) => {
-  for (user in users) {
-    if (req.body.email === users[user].email) {
-      if (bcrypt.compareSync(req.body.password, users[user].password)) {
-        req.session.user_id = users[user].id;
-        req.session.email = users[user].email;
+  let searchEmail = req.body.email;
+
+  User.findOne({ email: searchEmail })
+    .then(foundEmail => {
+      console.log(req.body.password);
+
+      if (bcrypt.compareSync(req.body.password, foundEmail.password)) {
+        console.log("right and being redirected");
+        req.session.user_id = foundEmail.id;
+        req.session.email = foundEmail.email;
         return res.redirect("/urls");
+      } else {
+        console.log("hello wrong password");
       }
-    }
-  }
-  req.session.wrongLogin = true;
-  res.redirect("/login");
+    })
+    .catch(() => {
+      req.session.wrongLogin = true;
+      res.redirect("/login");
+    });
 });
 
 router.get("/login", (req, res) => {
@@ -43,30 +67,41 @@ router.get("/register", (req, res) => {
 router.post("/register", (req, res) => {
   //Hashes password
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
-
+  const { email, password } = req.body;
   //if either parameter is empty, set cookie to equal blank so that .ejs file will present the text
-  if (req.body.email === "" || req.body.password === "") {
+  if (email === "" || password === "") {
     req.session.emailExists = "blank";
     return res.redirect("/register");
   }
 
-  if (getUserByEmail(req.body.email, users)) {
-    req.session.emailExists = "true";
-    return res.redirect("/register");
-  }
+  User.findOne({ email })
+    .then(founduser => {
+      //if User exists in the database
+      if (founduser) {
+        req.session.emailExists = "true";
+        return res.redirect("/register");
+      }
+      //user doesn't exist
+      //random string for user id
+      let temp = generateRandomString();
+      const id = temp;
+      const user = new User({
+        id,
+        email,
+        password: hashedPassword
+      });
 
-  //random string for user id
-  let temp = generateRandomString();
-  const id = temp;
-  temp = {
-    id,
-    email: req.body.email,
-    password: hashedPassword
-  };
+      req.session.user_id = temp;
+      req.session.email = email;
 
-  req.session.user_id = temp.id;
-  req.session.email = temp.email;
-  res.redirect("/urls");
+      user
+        .save()
+        .then(res.redirect("/urls"))
+        .catch(err => res.status(404));
+    })
+    .catch(err => {
+      res.json(err);
+    });
 });
 
 router.post("/logout", (req, res) => {
@@ -75,15 +110,21 @@ router.post("/logout", (req, res) => {
 });
 
 router.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL].longURL;
-  console.log(longURL);
-  if (longURL.slice(0, 4) !== "http") {
-    longURL = "https://" + longURL;
-  }
-  res.redirect(longURL);
+  URLdatabase.findOne({ shortURL: req.params.shortURL })
+    .then(foundURL => {
+      longURL = foundURL.longURL;
+      if (longURL.slice(0, 4) !== "http") {
+        longURL = "https://" + longURL;
+      }
+      res.redirect(longURL);
+    })
+    .catch(err => res.json(err));
+  // let longURL = urlDatabase[req.params.shortURL].longURL;
+  // console.log(longURL);
 });
 
 router.get("/", (req, res) => {
   res.redirect("/urls");
 });
+
 module.exports = router;

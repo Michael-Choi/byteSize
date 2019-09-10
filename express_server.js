@@ -3,7 +3,7 @@ const mongo = require("mongodb");
 const mongoose = require("mongoose");
 const assert = require("assert");
 const express = require("express");
-const bcrypt = require("bcrypt");
+
 const methodOverride = require("method-override");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -17,6 +17,10 @@ const db = require("./config/keys").mongoURI;
 const app = express();
 app.set("view engine", "ejs");
 
+mongoose.set("useFindAndModify", false);
+mongoose.set("useCreateIndex", true);
+mongoose.set("useUnifiedTopology", true);
+
 //Middleware to parse cookies and body
 //! The program deletes session cookies on redirects without cookieParser
 app.use(cookieParser());
@@ -26,8 +30,7 @@ app.use(
     keys: ["id"]
   })
 );
-// app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
 //connect to mongo
@@ -41,26 +44,6 @@ const PORT = process.env.PORT || 8080; // default port 8080
 //all routes that start with /urls get handled here
 app.use("/urls", urls);
 app.use("/", home);
-
-/** --URL Database format--
-
-urlDatabase={
-  shortURL:{
-    longURL:'asdf.ca', 
-    userID:"qwer"
-  }
-}
-
---Users database format--
-
-users={
-  user2: {
-    id: "user2",
-    email: "user2@gmail.com",
-    password: "password"
-  }
-}
-*/
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

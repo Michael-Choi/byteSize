@@ -39,8 +39,18 @@ npm start
 
    !["Manage your URLs"](https://github.com/Michael-Choi/tinyapp/blob/master/docs/shortened-urls.png)
    
-   
+ 
+ ## What I learned
+ - From this project I have learned how to set up a mongoDB
+ - Organize routes for express using routers
+ - Parse user input from forms using body-parser
+ - Securely manage cookies using sessions to keep track of user information
+ - Hashing passwords to securely store passwords in the database
+ 
  ## Future tasks:
- - Utilize mongoDB to store user logins and websites. 
- - Polish css
+ - Email/text authentification
+ - CSS styling
  - Create custom urls
+ - Statistics tracking
+ 
+ 

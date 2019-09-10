@@ -33,12 +33,12 @@ router.post("/login", (req, res) => {
         req.session.email = foundEmail.email;
         return res.redirect("/urls");
       } else {
-        console.log("hello wrong password");
+        req.session.wrongLogin = true;
+        res.redirect("/login");
       }
     })
-    .catch(() => {
-      req.session.wrongLogin = true;
-      res.redirect("/login");
+    .catch(err => {
+      res.status(404).json(err);
     });
 });
 

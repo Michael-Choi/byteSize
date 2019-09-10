@@ -14,7 +14,6 @@ router.use(
   })
 );
 router.use(bodyParser.urlencoded({ extended: true }));
-// app.use(bodyParser.json());
 
 //database models
 const User = require("../../models/User");
@@ -40,16 +39,21 @@ router.delete("/:shortURL/", (req, res) => {
 });
 
 router.put("/:shortURL/", (req, res) => {
-  URLdatabase.findOneAndUpdate(
-    { shortURL: req.params.shortURL },
-    { longURL: req.body.longURL }
-  ).then(res.redirect(`/urls/${req.params.shortURL}`));
+  URLdatabase.findOne({ shortURL: req.params.shortURL }).then(foundURL => {
+    if (req.session.user_id === foundURL.userID) {
+      URLdatabase.findOneAndUpdate(
+        { shortURL: req.params.shortURL },
+        { longURL: req.body.longURL }
+      ).then(res.redirect(`/urls/${req.params.shortURL}`));
+    }
+  });
 });
 
 router.get("/:shortURL", (req, res) => {
   let searchURL = req.params.shortURL;
   URLdatabase.findOne({ shortURL: searchURL })
     .then(foundURL => {
+      //! this sometimes returns null for somereason???
       console.log("found url", foundURL);
       let templateVars = {
         shortURL: req.params.shortURL,
@@ -62,6 +66,10 @@ router.get("/:shortURL", (req, res) => {
 });
 
 router.get("/", (req, res) => {
+  if (!req.session.email) {
+    console.log("being redirected to login");
+    return res.redirect("/login");
+  }
   let searchID = req.session.user_id;
   console.log("session uid", req.session.user_id);
   URLdatabase.find({ userID: searchID })
@@ -78,11 +86,6 @@ router.get("/", (req, res) => {
       res.render("urls_index", templateVars);
     })
     .catch(err => res.json(err));
-
-  if (!req.session.email) {
-    console.log("being redirected to login");
-    return res.redirect("/login");
-  }
 });
 
 router.post("/", (req, res) => {

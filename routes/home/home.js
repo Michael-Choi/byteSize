@@ -119,8 +119,6 @@ router.get("/u/:shortURL", (req, res) => {
       res.redirect(longURL);
     })
     .catch(err => res.json(err));
-  // let longURL = urlDatabase[req.params.shortURL].longURL;
-  // console.log(longURL);
 });
 
 router.get("/", (req, res) => {

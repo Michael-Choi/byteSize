@@ -4,11 +4,12 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Dependencies
 
-- Node.js
+- MongoDB and Mongoose
 - Express
 - EJS
 - bcrypt
 - body-parser
+- Method-Override
 - cookie-session
 
 ## Getting Started

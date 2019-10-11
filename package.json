@@ -12,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Michael-Choi/tinyapp.git"
+    "url": "git+https://github.com/Michael-Choi/bytesize.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Michael-Choi/tinyapp/issues"
+    "url": "https://github.com/Michael-Choi/bytesize/issues"
   },
-  "homepage": "https://github.com/Michael-Choi/tinyapp#readme",
+  "homepage": "https://github.com/Michael-Choi/bytesize#readme",
   "dependencies": {
     "bcrypt": "2.0.0",
     "body-parser": "^1.19.0",

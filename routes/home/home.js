@@ -114,7 +114,7 @@ router.get("/u/:shortURL", (req, res) => {
     .then(foundURL => {
       longURL = foundURL.longURL;
       if (longURL.slice(0, 4) !== "http") {
-        longURL = "https://" + longURL;
+        longURL = `https://${longURL}`;
       }
       res.redirect(longURL);
     })

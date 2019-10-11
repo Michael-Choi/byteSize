@@ -50,8 +50,7 @@ router.put("/:shortURL/", (req, res) => {
 });
 
 router.get("/:shortURL", (req, res) => {
-  let searchURL = req.params.shortURL;
-  URLdatabase.findOne({ shortURL: searchURL })
+  URLdatabase.findOne({ shortURL: req.params.shortURL })
     .then(foundURL => {
       //! this sometimes returns null for somereason???
       console.log("found url", foundURL);
@@ -60,7 +59,7 @@ router.get("/:shortURL", (req, res) => {
         longURL: foundURL.longURL,
         username: req.session.email
       };
-      res.render("urls_show", templateVars);
+      return res.render("urls_show", templateVars);
     })
     .catch(err => res.json(err));
 });

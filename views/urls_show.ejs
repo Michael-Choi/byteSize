@@ -20,8 +20,11 @@
       <div class="card-body">
         <h5 class="card-title">byteSize for: <%= longURL %></h5>
         <p class="card-text">
-          Short URL:
-          <a href="https://<%= longURL %>"><%= shortURL %></a>
+          Short URL: <% if (longURL.slice(0,4)=='http'){ console.log('http')%>
+          <a href=<%=longURL%>><%= shortURL %></a>
+          <% }else{ %>
+          <a href="https://<%=longURL %>"> <%= shortURL %></a>
+          <%} %>
         </p>
 
         <form method="POST" action="/urls/<%=shortURL %>/?_method=PUT">

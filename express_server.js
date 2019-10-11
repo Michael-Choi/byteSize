@@ -8,7 +8,7 @@ const methodOverride = require("method-override");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
-
+const dotenv = require("dotenv").config();
 //importing router routes for / and /urls
 const home = require("./routes/home/home");
 const urls = require("./routes/urls/urls");
@@ -34,8 +34,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
 //connect to mongo
+
 mongoose
-  .connect(db, { useNewUrlParser: true })
+  .connect(process.env.MONGOURI, { useNewUrlParser: true })
   .then(() => console.log("mongoDB connects"))
   .catch(err => console.log(err));
 

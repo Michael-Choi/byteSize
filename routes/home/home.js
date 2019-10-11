@@ -26,7 +26,6 @@ router.post("/login", (req, res) => {
   User.findOne({ email: searchEmail })
     .then(foundEmail => {
       console.log(req.body.password);
-
       if (bcrypt.compareSync(req.body.password, foundEmail.password)) {
         console.log("right and being redirected");
         req.session.user_id = foundEmail.id;

@@ -49,11 +49,12 @@ router.put("/:shortURL/", (req, res) => {
   });
 });
 
-router.get("/:shortURL", (req, res) => {
-  URLdatabase.findOne({ shortURL: req.params.shortURL })
+router.get("/:shortURL", async (req, res) => {
+  await URLdatabase.findOne({ shortURL: req.params.shortURL })
     .then(foundURL => {
-      //! this sometimes returns null for somereason???
-      console.log("found url", foundURL);
+      if (!foundURL) {
+        return res.redirect(`/urls/${req.params.shortURL}`);
+      }
       let templateVars = {
         shortURL: req.params.shortURL,
         longURL: foundURL.longURL,

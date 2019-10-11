@@ -13,7 +13,6 @@ const dotenv = require("dotenv").config();
 const home = require("./routes/home/home");
 const urls = require("./routes/urls/urls");
 
-const db = require("./config/keys").mongoURI;
 const app = express();
 app.set("view engine", "ejs");
 
